@@ -9,7 +9,6 @@
 
     <h2>Product Management</h2>
 
-    <!-- Replace "path/to/your/image.jpg" with the actual path to your image file -->
     <img src="C:\Users\Lenovo\Downloads\WEB Application.jpeg" alt="Product Management">
     <img src="C:\Users\Lenovo\Downloads\CRUD Architecture.jpeg" alt="CRUD Architecture">
 
