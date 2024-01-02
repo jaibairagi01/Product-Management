@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Product Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .main {
+            display: flex;
+            justify-content: space-around;
+            align-items: start;
+            padding: 20px;
+        }
+        
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            width: 25%;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .form-container h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            margin-bottom: 10px;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="submit"] {
+            padding: 8px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        
+        input[type="submit"] {
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .actionButton {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .deleteButton {
+            background-color: #ff5757;
+            color: white;
+        }
+        
+        .updateButton {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            background-color: #f2f2f2;
+            padding: 10px;
+        }
+        
+        .view {
+            background-color: white;
+            padding: 1em;
+            width: 35%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Product Management: RESTful API</h1>
+
+    <div class="main">
+        <div class="form-container add">
+            <h2>Add Product</h2>
+            <form id="addProductForm">
+                <label for="pname">Product Name:</label>
+                <input type="text" id="pname" name="pname" required>
+
+                <label for="price">Price ₹:</label>
+                <input type="number" id="price" name="price" required>
+
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" required>
+
+                <input type="submit" value="Add Product">
+            </form>
+        </div>
+
+        <div class="form-container update">
+            <h2>Update Product</h2>
+            <form id="updateProductForm">
+                <label for="updateProductId">Product ID:</label>
+                <input type="text" id="updateProductId" name="updateProductId" placeholder="Enter Product ID to Update">
+
+                <label for="updatedName">New Product Name:</label>
+                <input type="text" id="updatedName" name="updatedName" placeholder="New Product Name">
+
+                <label for="updatedPrice">New Price ₹:</label>
+                <input type="number" id="updatedPrice" name="updatedPrice" placeholder="New Price">
+
+                <label for="updatedQuantity">New Quantity:</label>
+                <input type="number" id="updatedQuantity" name="updatedQuantity" placeholder="New Quantity">
+
+                <input type="submit" value="Update Product">
+            </form>
+        </div>
+
+        <div class="view">
+            <h2>All Products</h2>
+            <table id="productTable">
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="productList"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchProducts();
+
+            const addProductForm = document.getElementById('addProductForm');
+            addProductForm.addEventListener('submit', addProduct);
+            const updateProductForm = document.getElementById('updateProductForm');
+            updateProductForm.addEventListener('submit', updateProductManually);
+        });
+
+        function fetchProducts() {
+            let request = new XMLHttpRequest();
+
+            request.onreadystatechange = function() {
+                if (request.readyState === XMLHttpRequest.DONE) {
+                    if (request.status === 200) {
+                        const data = JSON.parse(request.responseText);
+                        const productList = document.getElementById('productList');
+                        productList.innerHTML = '';
+
+                        data.products.forEach(product => {
+                            const row = document.createElement('tr');
+
+                            const productIdCell = document.createElement('td');
+                            productIdCell.textContent = product.PID;
+                            row.appendChild(productIdCell);
+
+                            const nameCell = document.createElement('td');
+                            nameCell.textContent = product.Pname;
+                            row.appendChild(nameCell);
+
+                            const priceCell = document.createElement('td');
+                            priceCell.textContent = product.Price;
+                            row.appendChild(priceCell);
+
+                            const quantityCell = document.createElement('td');
+                            quantityCell.textContent = product.Quantity;
+                            row.appendChild(quantityCell);
+
+
+                            const actionsCell = document.createElement('td');
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Delete';
+                            deleteButton.classList.add('actionButton', 'deleteButton');
+                            deleteButton.onclick = function() {
+                                deleteProduct(product.PID);
+                            };
+                            actionsCell.appendChild(deleteButton);
+
+                            const updateButton = document.createElement('button');
+                            updateButton.textContent = 'Update';
+                            updateButton.classList.add('actionButton', 'updateButton');
+                            updateButton.onclick = function() {
+                                populateUpdateForm(product.PID, product.Pname, product.Price, product.Quantity);
+                            };
+                            actionsCell.appendChild(updateButton);
+
+                            row.appendChild(actionsCell);
+
+                            productList.appendChild(row);
+                        });
+                    } else {
+                        console.error('Error fetching products:', request.status);
+                    }
+                }
+            };
+            request.open('GET', 'http://127.0.0.1:5000/products');
+            request.send();
+        }
+
+        function addProduct(event) {
+            event.preventDefault();
+
+            const pname = document.getElementById('pname').value;
+            const price = document.getElementById('price').value;
+            const quantity = document.getElementById('quantity').value;
+
+            let request = new XMLHttpRequest();
+            request.onreadystatechange = function() {
+                if (request.readyState === XMLHttpRequest.DONE) {
+                    if (request.status === 200) {
+                        document.getElementById('pname').value = '';
+                        document.getElementById('price').value = '';
+                        document.getElementById('quantity').value = '';
+
+                        fetchProducts();
+                    } else {
+                        console.error('Error adding product:', request.status);
+                    }
+                }
+            };
+            request.open('POST', 'http://127.0.0.1:5000/products/add');
+            request.setRequestHeader('Content-Type', 'application/json');
+
+            const productData = {
+                Pname: pname,
+                Price: price,
+                quantity: quantity,
+            };
+
+            request.send(JSON.stringify(productData));
+        }
+
+        function deleteProduct(productId) {
+            let deleteRequest = new XMLHttpRequest();
+            deleteRequest.onreadystatechange = function() {
+                if (deleteRequest.readyState === XMLHttpRequest.DONE) {
+                    if (deleteRequest.status === 200) {
+                        fetchProducts();
+                    } else {
+                        console.error('Error deleting product:', deleteRequest.status);
+                    }
+                }
+            };
+            deleteRequest.open('DELETE', `http://127.0.0.1:5000/products/delete/${productId}`);
+            deleteRequest.send();
+        }
+
+
+
+        function updateProductManually() {
+            const productId = document.getElementById('updateProductId').value;
+            const updatedName = document.getElementById('updatedName').value;
+            const updatedPrice = document.getElementById('updatedPrice').value;
+            const updatedQuantity = document.getElementById('updatedQuantity').value;
+
+            const updatedProductData = {
+                Pname: updatedName,
+                Price: updatedPrice,
+                quantity: updatedQuantity,
+            };
+
+            let updateRequest = new XMLHttpRequest();
+            updateRequest.onreadystatechange = function() {
+                if (updateRequest.readyState === XMLHttpRequest.DONE) {
+                    if (updateRequest.status === 200) {
+                        fetchProducts();
+                    } else {
+                        console.error('Error updating product:', updateRequest.status);
+                    }
+                }
+            };
+            updateRequest.open('PUT', `http://127.0.0.1:5000/products/update/${productId}`);
+            updateRequest.setRequestHeader('Content-Type', 'application/json');
+            updateRequest.send(JSON.stringify(updatedProductData));
+        }
+
+
+        function populateUpdateForm(productId, productName, productPrice, productQuantity) {
+            document.getElementById('updateProductId').value = productId;
+            document.getElementById('updatedName').value = productName;
+            document.getElementById('updatedPrice').value = productPrice;
+            document.getElementById('updatedQuantity').value = productQuantity;
+
+            document.getElementById('updateProductId').style.backgroundColor = 'yellow';
+            document.getElementById('updatedName').style.backgroundColor = 'yellow';
+            document.getElementById('updatedPrice').style.backgroundColor = 'yellow';
+            document.getElementById('updatedQuantity').style.backgroundColor = 'yellow';
+        }
+    </script>
+    <footer style="position: fixed; bottom: 0; width: 100%; text-align: center; background-color: #f2f2f2; padding: 10px;">
+        <p>Made by Jai Bairagi, EC GGITS </p>
+    </footer>
+</body>
+
+</html>
