@@ -111,7 +111,7 @@ def update_product(product_id):
 
         cursor.close()
         connection.close()
-
+  
         return jsonify({'message': 'Product updated successfully'})
     except Exception as e:
         return jsonify({'error': str(e)})
